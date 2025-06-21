@@ -13,7 +13,7 @@ function createReactiveProxy<T extends object>(model: T, handler: EventHandler):
 	if (isProxy(model))
 		throw new Error("Object is already proxied.");
 	const propProxies = new Map<string | symbol, object>();
-	const propFuncDependencies = new Map<string | symbol, Set<string | symbol>>();
+	const propFuncDependents = new Map<string | symbol, Set<string | symbol>>();
 	let activeFuncProp: string | symbol | null = null;
 	return new Proxy(model, {
 		has(target, p) {
@@ -23,8 +23,10 @@ function createReactiveProxy<T extends object>(model: T, handler: EventHandler):
 		},
 		get(target, p, receiver) {
 			if (p === propFuncDepsSymbol)
-				return propFuncDependencies;
+				return propFuncDependents;
 			const value = Reflect.get(target, p, receiver);
+			if (activeFuncProp !== null)
+				getOrAdd(propFuncDependents, p, () => new Set<string | symbol>()).add(activeFuncProp);
 			if (typeof value === 'function' && value.length === 0) {
 				return new Proxy(value, {
 					apply(applyTarget, thisArg, args) {
@@ -34,8 +36,6 @@ function createReactiveProxy<T extends object>(model: T, handler: EventHandler):
 					}
 				});
 			}
-			if (activeFuncProp !== null)
-				getOrAdd(propFuncDependencies, p, () => new Set<string | symbol>()).add(activeFuncProp);
 			return isProxyable(value)
 				? getOrAdd(propProxies, p, () => createReactiveProxy(value, handler))
 				: value;
@@ -51,9 +51,16 @@ function createReactiveProxy<T extends object>(model: T, handler: EventHandler):
 				handler(target, p, { newValue });
 			else if (oldValue !== newValue) {
 				handler(target, p, { oldValue, newValue });
-				propFuncDependencies.get(p)?.forEach(prop => handler(target, prop));
+				runHandlerOnDependencies(p);
 			}
 			return true;
+
+			function runHandlerOnDependencies(prop: string | symbol) {
+				propFuncDependents.get(prop)?.forEach(dep => {
+					handler(target, dep);
+					runHandlerOnDependencies(dep);
+				});
+			}
 		},
 		deleteProperty(target, p) {
 			const exists = Reflect.has(target, p);

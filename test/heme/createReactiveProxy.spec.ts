@@ -1,4 +1,4 @@
-import { createReactiveProxy } from "../../src/heme/createReactiveProxy";
+import { createReactiveProxy, propFuncDepsSymbol } from "../../src/heme/createReactiveProxy";
 import { it, describe } from "node:test";
 import { strict as assert } from "node:assert";
 
@@ -155,6 +155,32 @@ describe(createReactiveProxy.name, () => {
 		// const a = (proxy as any)[propFuncDepsSymbol];
 		assert.deepEqual(events, [
 			{obj, propKey: "a", detail: {oldValue: 1, newValue: 3}},
+			{obj, propKey: "sum"}
+		]);
+	});
+
+	it("should track properties that nested functions depend on", () => {
+		const events: { obj: object, propKey: any, detail?: {} }[] = [];
+		const handler = (obj: object, propKey: any, detail?: any) => events.push(
+			detail === undefined
+				? { obj, propKey }
+				: { obj, propKey, detail }
+		);
+
+		const obj = {
+			a: 1,
+			b: 2,
+			x() { return this.a },
+			y() { return this.b },
+			sum() { return this.x() + this.y() }
+		};
+		const proxy = createReactiveProxy(obj, handler);
+		proxy.sum();
+		proxy.a = 3;
+
+		assert.deepEqual(events, [
+			{obj, propKey: "a", detail: {oldValue: 1, newValue: 3}},
+			{obj, propKey: "x"},
 			{obj, propKey: "sum"}
 		]);
 	});
