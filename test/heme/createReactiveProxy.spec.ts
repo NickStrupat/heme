@@ -10,15 +10,15 @@ describe(createReactiveProxy.name, () => {
 		const obj = {a: 1, b: 2};
 		const proxy = createReactiveProxy(obj, handler);
 
-		assert.strictEqual(obj.a, 1);
-		assert.strictEqual(proxy.a, 1);
+		assert.equal(obj.a, 1);
+		assert.equal(proxy.a, 1);
 
-		assert.strictEqual(obj.b, 2);
-		assert.strictEqual(proxy.b, 2);
+		assert.equal(obj.b, 2);
+		assert.equal(proxy.b, 2);
 
 		proxy.a = 3;
-		assert.strictEqual(obj.a, 3);
-		assert.strictEqual(proxy.a, 3);
+		assert.equal(obj.a, 3);
+		assert.equal(proxy.a, 3);
 	});
 
 	it("should update the original object when the proxy is modified", () => {
@@ -29,9 +29,9 @@ describe(createReactiveProxy.name, () => {
 		const proxy = createReactiveProxy(obj, handler);
 
 		proxy.a = 3;
-		assert.strictEqual(obj.a, 3);
-		assert.strictEqual(proxy.a, 3);
-		assert.deepStrictEqual(events, [{obj, propKey: "a", detail: {oldValue: 1, newValue: 3}}]);
+		assert.equal(obj.a, 3);
+		assert.equal(proxy.a, 3);
+		assert.deepEqual(events, [{obj, propKey: "a", detail: {oldValue: 1, newValue: 3}}]);
 	});
 
 	it("should update the proxy when the original object is modified, but without reactivity", () => {
@@ -42,8 +42,8 @@ describe(createReactiveProxy.name, () => {
 		const proxy = createReactiveProxy(obj, handler);
 
 		obj.b = 4;
-		assert.strictEqual(proxy.b, 4);
-		assert.strictEqual(events.length, 0);
+		assert.equal(proxy.b, 4);
+		assert.equal(events.length, 0);
 	});
 
 	it("should delete properties from the original object", () => {
@@ -54,12 +54,12 @@ describe(createReactiveProxy.name, () => {
 		const obj: Obj = {a: 1, b: 2};
 		const proxy = createReactiveProxy(obj, handler);
 
-		assert.strictEqual("a" in obj, true);
-		assert.strictEqual("a" in proxy, true);
+		assert.equal("a" in obj, true);
+		assert.equal("a" in proxy, true);
 		delete proxy.a;
-		assert.strictEqual("a" in obj, false);
-		assert.strictEqual("a" in proxy, false);
-		assert.deepStrictEqual(events, [{obj, propKey: "a", detail: {oldValue: 1}}]);
+		assert.equal("a" in obj, false);
+		assert.equal("a" in proxy, false);
+		assert.deepEqual(events, [{obj, propKey: "a", detail: {oldValue: 1}}]);
 	});
 
 	it("should delete properties from the proxy, but without reactivity", () => {
@@ -70,12 +70,12 @@ describe(createReactiveProxy.name, () => {
 		const obj: Obj = {a: 1, b: 2};
 		const proxy = createReactiveProxy(obj, handler);
 
-		assert.strictEqual("a" in obj, true);
-		assert.strictEqual("a" in proxy, true);
+		assert.equal("a" in obj, true);
+		assert.equal("a" in proxy, true);
 		delete obj.a;
-		assert.strictEqual("a" in obj, false);
-		assert.strictEqual("a" in proxy, false);
-		assert.deepStrictEqual(events, []);
+		assert.equal("a" in obj, false);
+		assert.equal("a" in proxy, false);
+		assert.deepEqual(events, []);
 	});
 
 	it("should handle nested objects", () => {
@@ -85,10 +85,10 @@ describe(createReactiveProxy.name, () => {
 		const obj = {a: 1, b: {c: 2}};
 		const proxy = createReactiveProxy(obj, handler);
 
-		assert.strictEqual(proxy.b.c, 2);
+		assert.equal(proxy.b.c, 2);
 		proxy.b.c = 3;
-		assert.strictEqual(obj.b.c, 3);
-		assert.strictEqual(proxy.b.c, 3);
+		assert.equal(obj.b.c, 3);
+		assert.equal(proxy.b.c, 3);
 	});
 
 	it("should emit an event with the new value detail when a new property is set", () => {
@@ -100,7 +100,7 @@ describe(createReactiveProxy.name, () => {
 		const proxy = createReactiveProxy(obj, handler);
 
 		proxy.a = 1;
-		assert.deepStrictEqual(events, [{obj, propKey: "a", detail: {newValue: 1}}]);
+		assert.deepEqual(events, [{obj, propKey: "a", detail: {newValue: 1}}]);
 	});
 
 	it("should emit an event with the old and new value details when an existing property is set to a different value", () => {
@@ -111,7 +111,7 @@ describe(createReactiveProxy.name, () => {
 		const proxy = createReactiveProxy(obj, handler);
 
 		proxy.a = 2;
-		assert.deepStrictEqual(events, [{obj: obj, propKey: "a", detail: {oldValue: 1, newValue: 2}}]);
+		assert.deepEqual(events, [{obj: obj, propKey: "a", detail: {oldValue: 1, newValue: 2}}]);
 	});
 
 	it("should not emit an event when setting an existing property to the same value", () => {
@@ -121,7 +121,7 @@ describe(createReactiveProxy.name, () => {
 		const proxy = createReactiveProxy({a: 1}, handler);
 
 		proxy.a = 1; // Setting to the same value
-		assert.deepStrictEqual(events, []); // No event should be emitted
+		assert.deepEqual(events, []); // No event should be emitted
 	});
 
 	it("should emit an event with the old value detail when a property is deleted", () => {
@@ -133,7 +133,7 @@ describe(createReactiveProxy.name, () => {
 		const proxy = createReactiveProxy(obj, handler);
 
 		delete proxy.a;
-		assert.deepStrictEqual(events, [{obj, propKey: "a", detail: {oldValue: 1}}]);
+		assert.deepEqual(events, [{obj, propKey: "a", detail: {oldValue: 1}}]);
 	});
 
 	it("should track properties that functions depend on", () => {
